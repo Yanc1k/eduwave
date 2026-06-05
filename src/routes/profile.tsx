@@ -194,16 +194,19 @@ function ProfilePage() {
 
         // Fetch enrollments
         let coursesList: string[] = [];
+        let paidList: string[] = [];
         try {
           const { data: enrollments, error: enrollmentsErr } = await supabase
             .from("enrollments")
-            .select("course_name")
+            .select("course_name, is_paid")
             .eq("user_id", uid);
 
           if (enrollmentsErr) throw enrollmentsErr;
           if (enrollments) {
             coursesList = enrollments.map((e) => e.course_name);
+            paidList = enrollments.filter((e) => (e as any).is_paid).map((e) => e.course_name);
             localStorage.setItem(`eduwave_enrollments_${uid}`, JSON.stringify(coursesList));
+            localStorage.setItem(`eduwave_paid_courses_${uid}`, JSON.stringify(paidList));
           }
         } catch (eErr) {
           console.warn("Enrollments fetch failed, using localStorage:", eErr);
@@ -211,10 +214,15 @@ function ProfilePage() {
           if (localEnc) {
             coursesList = JSON.parse(localEnc);
           }
+          const localPaid = localStorage.getItem(`eduwave_paid_courses_${uid}`);
+          if (localPaid) {
+            paidList = JSON.parse(localPaid);
+          }
         }
 
         if (active) {
           setEnrolledCourses(coursesList);
+          setPaidCourses(paidList);
         }
       } catch (err: any) {
         console.error("Error loading user data:", err);
@@ -255,7 +263,17 @@ function ProfilePage() {
 
     setIsPaying(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from("enrollments")
+          .upsert({ user_id: userId, course_name: selectedPaymentCourse, is_paid: true }, { onConflict: "user_id,course_name" });
+
+        if (error) throw error;
+      } catch (err) {
+        console.warn("Supabase payment update failed, using localStorage fallback:", err);
+      }
+
       const updatedPaid = [...paidCourses, selectedPaymentCourse];
       setPaidCourses(updatedPaid);
       localStorage.setItem(`eduwave_paid_courses_${userId}`, JSON.stringify(updatedPaid));

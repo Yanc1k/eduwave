@@ -119,6 +119,25 @@ function Index() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [activeReviewTab, setActiveReviewTab] = useState<"all" | "trial" | "it" | "school">("all");
+  const [coursesList, setCoursesList] = useState<{ emoji: string; name: string; tag: string }[]>(courses);
+
+  useEffect(() => {
+    async function loadCourses() {
+      try {
+        const { data, error } = await supabase
+          .from("courses")
+          .select("emoji, name, tag")
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setCoursesList(data);
+        }
+      } catch (err) {
+        console.warn("Error loading courses from Supabase index:", err);
+      }
+    }
+    loadCourses();
+  }, []);
 
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -361,11 +380,11 @@ function Index() {
                 Выбирай направление и начинай прямо сейчас
               </p>
             </div>
-            <span className="text-sm font-bold text-brand-blue">{courses.length} направлений →</span>
+            <span className="text-sm font-bold text-brand-blue">{coursesList.length} направлений →</span>
           </div>
 
           <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {courses.map((c) => (
+            {coursesList.map((c) => (
               <div
                 key={c.name}
                 className="group p-6 rounded-3xl bg-card border border-border hover:border-brand-orange hover:shadow-[var(--shadow-card)] transition-all"

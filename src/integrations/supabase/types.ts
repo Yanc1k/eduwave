@@ -14,23 +14,217 @@ export type Database = {
   }
   public: {
     Tables: {
+      plans: {
+        Row: {
+          id: string
+          name: string
+          price_text: string
+          price_numeric: number
+          description: string
+          features: string[]
+          cta: string
+          highlight: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          price_text: string
+          price_numeric: number
+          description: string
+          features: string[]
+          cta?: string
+          highlight?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          price_text?: string
+          price_numeric?: number
+          description?: string
+          features?: string[]
+          cta?: string
+          highlight?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          plan_name: string
+          status: string
+          payment_method: string
+          amount_paid: number
+          created_at: string
+          expires_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          plan_name: string
+          status?: string
+          payment_method: string
+          amount_paid: number
+          created_at?: string
+          expires_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          plan_name?: string
+          status?: string
+          payment_method?: string
+          amount_paid?: number
+          created_at?: string
+          expires_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_name_fkey"
+            columns: ["plan_name"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["name"]
+          }
+        ]
+      }
+      courses: {
+        Row: {
+          id: string
+          name: string
+          emoji: string
+          tag: string
+          price: number
+          old_price: number | null
+          badge: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          emoji: string
+          tag: string
+          price?: number
+          old_price?: number | null
+          badge?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          emoji?: string
+          tag?: string
+          price?: number
+          old_price?: number | null
+          badge?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          id: string
+          course_name: string
+          lesson_number: number
+          title: string
+          duration: string
+          is_trial: boolean
+          theory: string
+          video_url: string
+          question: string
+          options: string[]
+          correct_answer: string
+          is_playground: boolean
+          playground_template: string | null
+          playground_task: string | null
+          custom_visual_type: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          course_name: string
+          lesson_number: number
+          title: string
+          duration: string
+          is_trial?: boolean
+          theory: string
+          video_url?: string
+          question: string
+          options: string[]
+          correct_answer: string
+          is_playground?: boolean
+          playground_template?: string | null
+          playground_task?: string | null
+          custom_visual_type?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          course_name?: string
+          lesson_number?: number
+          title?: string
+          duration?: string
+          is_trial?: boolean
+          theory?: string
+          video_url?: string
+          question?: string
+          options?: string[]
+          correct_answer?: string
+          is_playground?: boolean
+          playground_template?: string | null
+          playground_task?: string | null
+          custom_visual_type?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           created_at: string
           course_name: string
           id: string
           user_id: string
+          is_paid: boolean
         }
         Insert: {
           created_at?: string
           course_name: string
           id?: string
           user_id: string
+          is_paid?: boolean
         }
         Update: {
           created_at?: string
           course_name?: string
           id?: string
+          user_id?: string
+          is_paid?: boolean
+        }
+        Relationships: []
+      }
+      lesson_progress: {
+        Row: {
+          created_at: string
+          course_name: string
+          id: string
+          lesson_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          course_name: string
+          id?: string
+          lesson_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          course_name?: string
+          id?: string
+          lesson_id?: number
           user_id?: string
         }
         Relationships: []

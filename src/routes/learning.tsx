@@ -656,36 +656,138 @@ function LearningPage() {
   const [gitChecks, setGitChecks] = useState({ init: false, add: false, commit: false, push: false });
   const [isReadingMode, setIsReadingMode] = useState(false);
 
-  const lessons = useMemo(() => getLessonsForCourse(courseName), [courseName]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    let active = true;
+    supabase.auth.getSession().then(async ({ data }) => {
       const uid = data.session?.user.id ?? null;
       if (!uid) {
-        toast.error("Необходима авторизация");
-        navigate({ to: "/auth" });
+        if (active) {
+          toast.error("Необходима авторизация");
+          navigate({ to: "/auth" });
+        }
         return;
       }
-      setUserId(uid);
+      if (active) setUserId(uid);
 
-      // Check payment status
-      const localPaid = localStorage.getItem(`eduwave_paid_courses_${uid}`);
-      if (localPaid) {
-        const paidList = JSON.parse(localPaid) as string[];
-        setIsPaid(paidList.includes(courseName));
+      // 0. Fetch lessons for this course from Supabase
+      let lessonsList: Lesson[] = [];
+      try {
+        const { data: dbLessons, error: lessonsErr } = await supabase
+          .from("lessons")
+          .select("*")
+          .eq("course_name", courseName)
+          .order("lesson_number", { ascending: true });
+        
+        if (lessonsErr) throw lessonsErr;
+        
+        if (dbLessons && dbLessons.length > 0) {
+          lessonsList = dbLessons.map((l) => ({
+            id: l.lesson_number,
+            title: l.title,
+            duration: l.duration,
+            isTrial: l.is_trial,
+            theory: l.theory,
+            videoUrl: l.video_url,
+            question: l.question,
+            options: l.options,
+            correctAnswer: l.correct_answer,
+            isPlayground: l.is_playground,
+            playgroundTemplate: l.playground_template ?? undefined,
+            playgroundTask: l.playground_task ?? undefined,
+            customVisualType: l.custom_visual_type as any
+          }));
+        } else {
+          // Fallback to static list
+          lessonsList = getLessonsForCourse(courseName);
+        }
+      } catch (err) {
+        console.warn("Error fetching lessons from Supabase:", err);
+        // Fallback to static list
+        lessonsList = getLessonsForCourse(courseName);
       }
+      if (active) setLessons(lessonsList);
 
-      // Check progress
-      const localProgress = localStorage.getItem(`eduwave_progress_${uid}_${courseName}`);
-      if (localProgress) {
-        setCompletedLessons(JSON.parse(localProgress));
+      // 1. Fetch payment status from Supabase enrollments
+      let isPaidLocal = false;
+      try {
+        const { data: enrollment, error: enrollError } = await supabase
+          .from("enrollments")
+          .select("is_paid")
+          .eq("user_id", uid)
+          .eq("course_name", courseName)
+          .maybeSingle();
+        if (enrollError) throw enrollError;
+        if (enrollment) {
+          isPaidLocal = (enrollment as any).is_paid;
+        } else {
+          // If not enrolled in DB, check localPaid fallback
+          const localPaid = localStorage.getItem(`eduwave_paid_courses_${uid}`);
+          if (localPaid) {
+            const paidList = JSON.parse(localPaid) as string[];
+            isPaidLocal = paidList.includes(courseName);
+          }
+        }
+      } catch (err) {
+        console.warn("Error fetching enrollment/payment from Supabase:", err);
+        const localPaid = localStorage.getItem(`eduwave_paid_courses_${uid}`);
+        if (localPaid) {
+          const paidList = JSON.parse(localPaid) as string[];
+          isPaidLocal = paidList.includes(courseName);
+        }
       }
-      
-      setLoading(false);
+      if (active) setIsPaid(isPaidLocal);
+
+      // 2. Fetch progress from Supabase lesson_progress
+      let completedList: number[] = [];
+      try {
+        const { data: progressData, error: progressErr } = await supabase
+          .from("lesson_progress")
+          .select("lesson_id")
+          .eq("user_id", uid)
+          .eq("course_name", courseName);
+        if (progressErr) throw progressErr;
+        if (progressData && progressData.length > 0) {
+          completedList = progressData.map((p) => p.lesson_id);
+          localStorage.setItem(`eduwave_progress_${uid}_${courseName}`, JSON.stringify(completedList));
+        } else {
+          // Try local fallback
+          const localProgress = localStorage.getItem(`eduwave_progress_${uid}_${courseName}`);
+          if (localProgress) {
+            completedList = JSON.parse(localProgress);
+            // Proactively sync local progress to Supabase
+            for (const lid of completedList) {
+              await supabase.from("lesson_progress").upsert({ user_id: uid, course_name: courseName, lesson_id: lid });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Error fetching progress from Supabase:", err);
+        const localProgress = localStorage.getItem(`eduwave_progress_${uid}_${courseName}`);
+        if (localProgress) {
+          completedList = JSON.parse(localProgress);
+        }
+      }
+      if (active) {
+        setCompletedLessons(completedList);
+        setLoading(false);
+      }
     });
+    return () => { active = false; };
   }, [courseName, navigate]);
 
-  const activeLesson = lessons.find((l) => l.id === activeLessonId) ?? lessons[0];
+  const activeLesson = lessons.find((l) => l.id === activeLessonId) ?? lessons[0] ?? {
+    id: 1,
+    title: "",
+    duration: "",
+    isTrial: true,
+    theory: "",
+    videoUrl: "",
+    question: "",
+    options: [],
+    correctAnswer: ""
+  };
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -720,6 +822,14 @@ function LearningPage() {
         setCompletedLessons(newCompleted);
         if (userId) {
           localStorage.setItem(`eduwave_progress_${userId}_${courseName}`, JSON.stringify(newCompleted));
+          
+          // Save to Supabase
+          supabase
+            .from("lesson_progress")
+            .upsert({ user_id: userId, course_name: courseName, lesson_id: activeLessonId })
+            .then(({ error }) => {
+              if (error) console.error("Error saving lesson progress to Supabase:", error);
+            });
         }
       }
     } else {

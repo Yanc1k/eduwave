@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { getLessonsForCourse } from "./learning";
 
 export const Route = createFileRoute("/courses")({
   component: CoursesPage,
@@ -15,47 +14,25 @@ export const Route = createFileRoute("/courses")({
   }),
 });
 
-const courses = [
-  { emoji: "🚀", name: "Вводный IT-экспресс (Пробный)", tag: "Старт в IT · Бесплатно", price: 0, old: 4990, badge: "Пробный" },
-  { emoji: "➗", name: "Математика", tag: "Школа · ЕГЭ", price: 14990, old: 19990, badge: "Хит" },
-  { emoji: "⚛️", name: "Физика", tag: "7–11 класс", price: 13990, old: null, badge: null },
-  { emoji: "🧪", name: "Химия", tag: "Школа · Олимпиады", price: 13990, old: null, badge: null },
-  { emoji: "🏛️", name: "История", tag: "ОГЭ · ЕГЭ", price: 12490, old: null, badge: null },
-  { emoji: "🇬🇧", name: "Английский язык", tag: "A1 — C1", price: 17490, old: 22490, badge: "Новый" },
-  { emoji: "💻", name: "Программирование", tag: "Python · Web", price: 24990, old: null, badge: "Топ" },
-  { emoji: "🎨", name: "Дизайн", tag: "Figma · UI/UX · Бесплатно", price: 0, old: 19990, badge: "Бесплатно" },
-  { emoji: "📖", name: "Русский язык", tag: "ОГЭ · ЕГЭ", price: 12490, old: null, badge: null },
-  { emoji: "🧬", name: "Биология", tag: "Школа · ОГЭ · ЕГЭ", price: 13490, old: 18990, badge: "Новый" },
-  { emoji: "📢", name: "Маркетинг", tag: "SMM · SMM · SEO", price: 18990, old: 24990, badge: "Хит" },
-  { emoji: "📱", name: "Мобильная разработка", tag: "iOS · Android · Flutter", price: 26490, old: 34990, badge: "Топ" },
-];
+interface CourseItem {
+  emoji: string;
+  name: string;
+  tag: string;
+  price: number;
+  old: number | null;
+  badge: string | null;
+}
 
-const plans = [
-  {
-    name: "Старт",
-    price: "Бесплатно",
-    desc: "Попробуй формат",
-    features: ["🔓 Доступ к вводным урокам", "🤖 Базовый ИИ-помощник", "💬 Поддержка в чате", "📊 Прогресс-трекер обучения"],
-    cta: "Начать",
-    highlight: false,
-  },
-  {
-    name: "Стандарт",
-    price: "14 990 ₸/мес",
-    desc: "Самый популярный",
-    features: ["📚 1 профессиональный курс", "✍️ Домашки с проверкой эксперта", "⚡ Умный ИИ-репетитор 24/7 (Разбор ошибок)", "🎙️ Участие в живых эфирах", "🎓 Официальный сертификат"],
-    cta: "Выбрать план",
-    highlight: true,
-  },
-  {
-    name: "Премиум",
-    price: "29 990 ₸/мес",
-    desc: "Максимум возможностей",
-    features: ["🚀 Полный доступ ко всем курсам", "🤖 Персональный ИИ-ментор (GPT-4o)", "🧑‍🏫 Личный наставник & созвоны", "🎯 Индивидуальный трек подготовки ОГЭ/ЕГЭ", "💼 Карьерный буст: резюме & стажировки"],
-    cta: "Выбрать план",
-    highlight: false,
-  },
-];
+interface PlanItem {
+  name: string;
+  price: string;
+  price_numeric: number;
+  desc: string;
+  features: string[];
+  cta: string;
+  highlight: boolean;
+}
+
 
 function CoursesPage() {
   const navigate = useNavigate();
@@ -65,6 +42,65 @@ function CoursesPage() {
   const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
   const [paidCourses, setPaidCourses] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [coursesList, setCoursesList] = useState<CourseItem[]>([]);
+  const [plansList, setPlansList] = useState<PlanItem[]>([]);
+  const [lessonsCount, setLessonsCount] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const { data: cData, error: cErr } = await supabase
+          .from("courses")
+          .select("emoji, name, tag, price, old_price, badge")
+          .order("created_at", { ascending: true });
+
+        if (!cErr && cData && cData.length > 0) {
+          const mapped = cData.map((item) => ({
+            emoji: item.emoji,
+            name: item.name,
+            tag: item.tag,
+            price: item.price,
+            old: item.old_price,
+            badge: item.badge,
+          }));
+          setCoursesList(mapped);
+        }
+
+        const { data: pData, error: pErr } = await supabase
+          .from("plans")
+          .select("name, price_text, price_numeric, description, features, cta, highlight")
+          .order("price_numeric", { ascending: true });
+
+        if (!pErr && pData && pData.length > 0) {
+          const mappedPlans = pData.map((item) => ({
+            name: item.name,
+            price: item.price_text,
+            price_numeric: item.price_numeric,
+            desc: item.description,
+            features: item.features,
+            cta: item.cta,
+            highlight: item.highlight,
+          }));
+          setPlansList(mappedPlans);
+        }
+
+        const { data: lData, error: lErr } = await supabase
+          .from("lessons")
+          .select("course_name");
+
+        if (!lErr && lData) {
+          const counts: Record<string, number> = {};
+          lData.forEach((l) => {
+            counts[l.course_name] = (counts[l.course_name] || 0) + 1;
+          });
+          setLessonsCount(counts);
+        }
+      } catch (err) {
+        console.warn("Error loading courses/lessons from Supabase:", err);
+      }
+    }
+    loadData();
+  }, []);
 
   const loadUserAvatar = async (uid: string) => {
     const localAvatar = localStorage.getItem(`eduwave_profile_avatar_${uid}`);
@@ -122,7 +158,7 @@ function CoursesPage() {
       navigate({ to: "/auth" });
       return;
     }
-    
+
     if (enrolledCourses.includes(planName)) {
       toast.info(`У вас уже оформлен тариф «${planName}»`);
       return;
@@ -134,7 +170,8 @@ function CoursesPage() {
       return;
     }
 
-    const price = planName === "Стандарт" ? 14990 : 29990;
+    const plan = plansList.find((p) => p.name === planName);
+    const price = plan ? plan.price_numeric : (planName === "Стандарт" ? 14990 : 29990);
     setSelectedPlan({ name: planName, price });
     setIsPaymentOpen(true);
     setCardNumber("");
@@ -152,16 +189,31 @@ function CoursesPage() {
 
     setTimeout(async () => {
       try {
+        const { error: subErr } = await supabase
+          .from("subscriptions")
+          .insert({
+            user_id: userId,
+            plan_name: selectedPlan.name,
+            payment_method: paymentMethod,
+            amount_paid: selectedPlan.price,
+            status: "active"
+          });
+
+        if (subErr) throw subErr;
+
         const { error } = await supabase
           .from("enrollments")
-          .insert({ user_id: userId, course_name: selectedPlan.name });
+          .insert({ user_id: userId, course_name: selectedPlan.name, is_paid: true });
 
         if (error) throw error;
 
         const newEnrollments = [...enrolledCourses, selectedPlan.name];
+        const newPaid = [...paidCourses, selectedPlan.name];
         setEnrolledCourses(newEnrollments);
+        setPaidCourses(newPaid);
         localStorage.setItem(`eduwave_enrollments_${userId}`, JSON.stringify(newEnrollments));
-        
+        localStorage.setItem(`eduwave_paid_courses_${userId}`, JSON.stringify(newPaid));
+
         setIsPaymentOpen(false);
         setIsPaying(false);
         toast.success(`Оплата тарифа «${selectedPlan.name}» успешно завершена! Подписка активна. 🚀`, {
@@ -170,9 +222,12 @@ function CoursesPage() {
       } catch (err: any) {
         console.warn("Supabase plan enroll failed, using local storage fallback:", err);
         const newEnrollments = [...enrolledCourses, selectedPlan.name];
+        const newPaid = [...paidCourses, selectedPlan.name];
         setEnrolledCourses(newEnrollments);
+        setPaidCourses(newPaid);
         localStorage.setItem(`eduwave_enrollments_${userId}`, JSON.stringify(newEnrollments));
-        
+        localStorage.setItem(`eduwave_paid_courses_${userId}`, JSON.stringify(newPaid));
+
         setIsPaymentOpen(false);
         setIsPaying(false);
         toast.success(`Оплата тарифа «${selectedPlan.name}» успешно завершена! Подписка активна. 🚀`, {
@@ -186,19 +241,27 @@ function CoursesPage() {
     try {
       const { data, error } = await supabase
         .from("enrollments")
-        .select("course_name")
+        .select("course_name, is_paid")
         .eq("user_id", uid);
       if (error) throw error;
       if (data) {
-        setEnrolledCourses(data.map((item) => item.course_name));
+        const enrolled = data.map((item) => item.course_name);
+        const paid = data.filter((item) => (item as any).is_paid).map((item) => item.course_name);
+        setEnrolledCourses(enrolled);
+        setPaidCourses(paid);
         // Sync to local storage
-        localStorage.setItem(`eduwave_enrollments_${uid}`, JSON.stringify(data.map((item) => item.course_name)));
+        localStorage.setItem(`eduwave_enrollments_${uid}`, JSON.stringify(enrolled));
+        localStorage.setItem(`eduwave_paid_courses_${uid}`, JSON.stringify(paid));
       }
     } catch (err) {
       console.warn("Supabase enrollments fetch failed, using localStorage fallback:", err);
       const local = localStorage.getItem(`eduwave_enrollments_${uid}`);
       if (local) {
         setEnrolledCourses(JSON.parse(local));
+      }
+      const localPaid = localStorage.getItem(`eduwave_paid_courses_${uid}`);
+      if (localPaid) {
+        setPaidCourses(JSON.parse(localPaid));
       }
     }
   };
@@ -300,11 +363,11 @@ function CoursesPage() {
       toast.success(`Вы успешно записались на курс «${name}»!`);
     } catch (err: any) {
       console.warn("Supabase enroll failed, using localStorage fallback:", err);
-      
+
       const newEnrollments = [...enrolledCourses, name];
       setEnrolledCourses(newEnrollments);
       localStorage.setItem(`eduwave_enrollments_${userId}`, JSON.stringify(newEnrollments));
-      
+
       toast.success(`Вы успешно записались на курс «${name}»!`);
     } finally {
       setLoading(false);
@@ -395,7 +458,7 @@ function CoursesPage() {
               </span>
             </h2>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {courses
+              {coursesList
                 .filter((c) => enrolledCourses.includes(c.name))
                 .map((c) => (
                   <div
@@ -411,7 +474,7 @@ function CoursesPage() {
                   </div>
                 ))}
               {/* Also display plans in enrolled list if selected */}
-              {plans
+              {plansList
                 .filter((p) => enrolledCourses.includes(p.name))
                 .map((p) => (
                   <div
@@ -434,7 +497,7 @@ function CoursesPage() {
       {/* Courses grid */}
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {courses.map((c) => (
+          {coursesList.map((c) => (
             <div
               key={c.name}
               className="relative p-6 rounded-3xl bg-card border border-border hover:border-brand-orange hover:shadow-[var(--shadow-card)] transition-all flex flex-col"
@@ -457,29 +520,28 @@ function CoursesPage() {
               {enrolledCourses.includes(c.name) ? (
                 <div className="mt-5 space-y-2.5">
                   {(() => {
-                    const lessons = getLessonsForCourse(c.name);
+                    const lessonsLength = lessonsCount[c.name] || 4;
                     const localProgress = userId ? localStorage.getItem(`eduwave_progress_${userId}_${c.name}`) : null;
                     const completedLessons = localProgress ? (JSON.parse(localProgress) as number[]) : [];
-                    const progressPercent = Math.round((completedLessons.length / lessons.length) * 100);
+                    const progressPercent = Math.round((completedLessons.length / lessonsLength) * 100);
                     const isCompleted = progressPercent === 100;
-                    
+
                     return (
                       <>
                         <div className="p-3 rounded-2xl bg-muted/30 border border-border/30">
                           <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground mb-1">
                             <span>Прогресс: {progressPercent}%</span>
-                            <span>{completedLessons.length}/{lessons.length} уроков</span>
+                            <span>{completedLessons.length}/{lessonsLength} уроков</span>
                           </div>
                           <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-500 rounded-full ${
-                                isCompleted ? "bg-gradient-to-r from-amber-500 to-yellow-400" : "bg-brand-blue"
-                              }`}
+                            <div
+                              className={`h-full transition-all duration-500 rounded-full ${isCompleted ? "bg-gradient-to-r from-amber-500 to-yellow-400" : "bg-brand-blue"
+                                }`}
                               style={{ width: `${progressPercent}%` }}
                             />
                           </div>
                         </div>
-                        
+
                         <button
                           onClick={() => navigate({ to: "/learning", search: { course: c.name } })}
                           className="w-full py-3 rounded-full font-bold text-sm bg-brand-blue text-white hover:scale-[1.02] active:scale-[0.98] transition shadow-md cursor-pointer border-none"
@@ -521,14 +583,13 @@ function CoursesPage() {
             <p className="mt-4 text-muted-foreground font-semibold">Учись столько, сколько хочешь — отменить можно в любой момент</p>
           </div>
           <div className="mt-14 grid md:grid-cols-3 gap-6">
-            {plans.map((p) => (
+            {plansList.map((p) => (
               <div
                 key={p.name}
-                className={`p-8 rounded-3xl border transition-all flex flex-col ${
-                  p.highlight
-                    ? "bg-gradient-to-br from-brand-blue to-brand-orange text-white border-transparent shadow-[var(--shadow-glow)] scale-[1.03]"
-                    : "bg-card border-border"
-                }`}
+                className={`p-8 rounded-3xl border transition-all flex flex-col ${p.highlight
+                  ? "bg-gradient-to-br from-brand-blue to-brand-orange text-white border-transparent shadow-[var(--shadow-glow)] scale-[1.03]"
+                  : "bg-card border-border"
+                  }`}
               >
                 <div className={`text-xs font-bold uppercase tracking-wider ${p.highlight ? "text-white/80" : "text-brand-orange"}`}>
                   {p.desc}
@@ -546,13 +607,12 @@ function CoursesPage() {
                 <button
                   onClick={() => handlePlanSelect(p.name)}
                   disabled={loading || enrolledCourses.includes(p.name)}
-                  className={`mt-8 py-3 rounded-full font-bold text-sm transition ${
-                    enrolledCourses.includes(p.name)
-                      ? "bg-emerald-500 text-white border border-emerald-500 cursor-default"
-                      : p.highlight
-                        ? "bg-white text-brand-blue hover:bg-white/90 cursor-pointer"
-                        : "bg-brand-blue text-brand-blue-foreground hover:opacity-90 cursor-pointer"
-                  }`}
+                  className={`mt-8 py-3 rounded-full font-bold text-sm transition ${enrolledCourses.includes(p.name)
+                    ? "bg-emerald-500 text-white border border-emerald-500 cursor-default"
+                    : p.highlight
+                      ? "bg-white text-brand-blue hover:bg-white/90 cursor-pointer"
+                      : "bg-brand-blue text-brand-blue-foreground hover:opacity-90 cursor-pointer"
+                    }`}
                 >
                   {enrolledCourses.includes(p.name) ? "✓ Выбрано" : p.cta}
                 </button>
@@ -565,13 +625,13 @@ function CoursesPage() {
       {/* Checkout Payment Modal */}
       {isPaymentOpen && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsPaymentOpen(false)}
           />
-          
+
           <div className="relative w-full max-w-md bg-card rounded-3xl border border-border shadow-2xl p-8 overflow-hidden transform scale-100 transition-all z-10 animate-in fade-in zoom-in-95 duration-200 text-foreground">
-            <button 
+            <button
               onClick={() => setIsPaymentOpen(false)}
               className="absolute top-5 right-5 w-8 h-8 rounded-full bg-muted hover:bg-border flex items-center justify-center transition cursor-pointer text-muted-foreground hover:text-foreground border-none font-bold"
             >
@@ -599,18 +659,16 @@ function CoursesPage() {
               <button
                 type="button"
                 onClick={() => setPaymentMethod("card")}
-                className={`py-2 rounded-full text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border-none ${
-                  paymentMethod === "card" ? "bg-white text-foreground shadow-sm font-extrabold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`py-2 rounded-full text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border-none ${paymentMethod === "card" ? "bg-white text-foreground shadow-sm font-extrabold" : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <span>💳</span> Картой банка
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("kaspi")}
-                className={`py-2 rounded-full text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border-none ${
-                  paymentMethod === "kaspi" ? "bg-white text-foreground shadow-sm font-extrabold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`py-2 rounded-full text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border-none ${paymentMethod === "kaspi" ? "bg-white text-foreground shadow-sm font-extrabold" : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <span className="w-4.5 h-4.5 rounded-md bg-red-500 text-[10px] text-white flex items-center justify-center font-bold">K</span> Kaspi.kz
               </button>
