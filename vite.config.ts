@@ -1,16 +1,15 @@
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { nitro } from "nitro/vite";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  cloudflare: false,
-  tanstackStart: {
-    server: {
-      preset: "vercel",
-    },
-  },
   plugins: [
-    nitro({
-      preset: "vercel",
-    }),
+    TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
+    react(),
+    tsconfigPaths(),
   ],
+  build: {
+    outDir: "dist",
+  },
 });
