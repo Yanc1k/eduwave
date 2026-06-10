@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduWave — Интерактивная Презентация</title>
+  <meta name="description" content="Презентация образовательной платформы EduWave — новое поколение онлайн-обучения школьников и студентов." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #3b82f6;
+      --blue-dark: #1d4ed8;
+      --orange: #f97316;
+      --orange-light: #fed7aa;
+      --bg: #0a0f1e;
+      --surface: #111827;
+      --surface2: #1a2234;
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --grad: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #f97316 100%);
+      --grad2: linear-gradient(135deg, #1d4ed8, #7c3aed);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ─── PROGRESS BAR ─── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: var(--grad);
+      z-index: 100;
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 0 12px rgba(139,92,246,.6);
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(10,15,30,.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(59,130,246,.4);
+    }
+    .logo-text {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .slide-counter {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      letter-spacing: .05em;
+    }
+    .btn-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: all .2s;
+    }
+    .btn-icon:hover { background: var(--surface); color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* ─── MAIN SLIDES CONTAINER ─── */
+    #slides-wrapper {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 88px 32px 80px;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1100px;
+      animation: slideIn .5s cubic-bezier(.4,0,.2,1);
+    }
+    .slide.active { display: flex; flex-direction: column; align-items: center; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── FOOTER NAV ─── */
+    footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 14px 32px;
+      background: rgba(10,15,30,.85);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 100px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-prev {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-prev:hover:not(:disabled) { background: var(--surface); color: var(--text); }
+    .btn-prev:disabled { opacity: .35; cursor: default; }
+
+    .btn-next {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(59,130,246,.35);
+    }
+    .btn-next:hover:not(:disabled) { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(59,130,246,.5); }
+    .btn-next:disabled { opacity: .35; cursor: default; }
+
+    .dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 8px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all .3s;
+    }
+    .dot.active {
+      width: 24px;
+      border-radius: 100px;
+      background: var(--blue);
+      border-color: transparent;
+    }
+
+    /* ─── DECORATIVE BG BLOBS ─── */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 500px; height: 500px; top: -150px; right: -150px; background: rgba(59,130,246,.12); }
+    .blob-2 { width: 400px; height: 400px; bottom: -100px; left: -100px; background: rgba(249,115,22,.10); }
+    .blob-3 { width: 300px; height: 300px; top: 50%; left: 40%; transform: translate(-50%,-50%); background: rgba(139,92,246,.08); }
+
+    /* ─── UTILITY ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .badge-orange { background: rgba(249,115,22,.15); color: var(--orange); border: 1px solid rgba(249,115,22,.25); }
+    .badge-blue   { background: rgba(59,130,246,.15);  color: var(--blue);   border: 1px solid rgba(59,130,246,.25); }
+    .badge-green  { background: rgba(34,197,94,.15);   color: #22c55e;       border: 1px solid rgba(34,197,94,.25); }
+    .badge-red    { background: rgba(239,68,68,.15);   color: #ef4444;       border: 1px solid rgba(239,68,68,.25); }
+    .badge-purple { background: rgba(139,92,246,.15);  color: #8b5cf6;       border: 1px solid rgba(139,92,246,.25); }
+
+    h1, h2 { font-family: 'Unbounded', sans-serif; }
+
+    .grad-text {
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .blue-text { color: var(--blue); }
+    .orange-text { color: var(--orange); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+    }
+
+    /* ─── SLIDE 1 – HERO ─── */
+    #slide-1 {
+      text-align: center;
+      gap: 24px;
+    }
+    #slide-1 h1 {
+      font-size: clamp(48px, 7vw, 88px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -.03em;
+    }
+    #slide-1 .subtitle {
+      font-size: clamp(16px, 2vw, 22px);
+      color: var(--muted);
+      font-weight: 500;
+      max-width: 580px;
+    }
+    .stats-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px 32px;
+      margin-top: 8px;
+    }
+    .stat {
+      text-align: center;
+      padding: 0 28px;
+    }
+    .stat-num {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .stat-div { width: 1px; height: 40px; background: var(--border); }
+    .hint-keys {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    kbd {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-family: inherit;
+      color: var(--text);
+    }
+
+    /* ─── SLIDE 2 – PROBLEM ─── */
+    #slide-2 .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      width: 100%;
+    }
+    #slide-2 h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 800; line-height: 1.15; margin: 12px 0; }
+    .problem-desc { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+    .pain-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .pain-item { display: flex; gap: 12px; align-items: flex-start; }
+    .pain-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      border-radius: 50%;
+      background: rgba(239,68,68,.12);
+      color: #ef4444;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+    }
+    .pain-title { font-size: 13px; font-weight: 700; }
+    .pain-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      padding: 28px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 42px;
+      top: 48px; bottom: 40px;
+      width: 2px;
+      background: rgba(239,68,68,.2);
+    }
+    .tl-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 10px 0;
+      position: relative;
+      z-index: 1;
+    }
+    .tl-num {
+      width: 30px; height: 30px; flex-shrink: 0;
+      border-radius: 50%;
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.25);
+      color: #ef4444;
+      font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tl-num.bad { background: rgba(239,68,68,.25); border-color: rgba(239,68,68,.5); }
+    .tl-title { font-size: 13px; font-weight: 700; }
+    .tl-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+    /* ─── SLIDE 3 – SOLUTION ─── */
+    #slide-3 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; width: 100%; }
+    #slide-3 h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 800; line-height: 1.15; margin: 12px 0; }
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .feat-item { display: flex; gap: 12px; align-items: flex-start; }
+    .feat-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      border-radius: 50%;
+      background: rgba(59,130,246,.12);
+      color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+    }
+
+    .sol-timeline { position: relative; padding: 28px; }
+    .sol-timeline::before {
+      content: '';
+      position: absolute;
+      left: 42px; top: 48px; bottom: 40px;
+      width: 2px;
+      background: rgba(59,130,246,.2);
+    }
+    .sol-item { display: flex; gap: 16px; align-items: flex-start; padding: 10px 0; position: relative; z-index: 1; }
+    .sol-num {
+      width: 30px; height: 30px; flex-shrink: 0;
+      border-radius: 50%;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.25);
+      color: var(--blue);
+      font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sol-num.win { background: rgba(249,115,22,.2); border-color: rgba(249,115,22,.5); color: var(--orange); }
+
+    /* ─── SLIDE 4 – FEATURES ─── */
+    #slide-4 { gap: 28px; }
+    #slide-4 h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 800; text-align: center; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+    .feat-card {
+      padding: 28px 24px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all .3s;
+    }
+    .feat-card:hover { border-color: rgba(59,130,246,.4); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(59,130,246,.12); }
+    .feat-card-icon {
+      font-size: 32px;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .feat-card-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .feat-card-desc  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    /* ─── SLIDE 5 – KASPI ─── */
+    #slide-5 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; width: 100%; }
+    #slide-5 h2 { font-size: clamp(26px, 3vw, 38px); font-weight: 800; line-height: 1.2; margin: 12px 0; }
+    .pay-feature { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; }
+    .pay-check {
+      width: 22px; height: 22px; flex-shrink: 0;
+      border-radius: 50%;
+      background: rgba(34,197,94,.12);
+      color: #22c55e;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; margin-top: 2px;
+    }
+
+    /* Kaspi simulator */
+    .kaspi-sim {
+      padding: 28px;
+      border-radius: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .kaspi-sim::before {
+      content: 'СИМУЛЯТОР';
+      position: absolute;
+      top: 12px; right: -20px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      padding: 4px 24px;
+      transform: rotate(12deg);
+    }
+    .kaspi-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .kaspi-k {
+      width: 28px; height: 28px;
+      background: #ef4444;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .kaspi-title { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 700; }
+
+    .kaspi-amount {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .kaspi-amount-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .kaspi-amount-val { font-family: 'Unbounded', sans-serif; font-size: 18px; font-weight: 800; color: var(--blue); }
+
+    .kaspi-input-label { font-size: 11px; font-weight: 700; margin-bottom: 6px; display: block; }
+    .kaspi-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color .2s;
+      margin-bottom: 14px;
+    }
+    .kaspi-input:focus { border-color: var(--blue); }
+
+    .kaspi-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 100px;
+      border: none;
+      background: var(--orange);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 4px 16px rgba(249,115,22,.3);
+    }
+    .kaspi-btn:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(249,115,22,.4); }
+
+    .kaspi-loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 0;
+      gap: 14px;
+      text-align: center;
+    }
+    .spin {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .kaspi-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0;
+      gap: 12px;
+      text-align: center;
+    }
+    .success-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: rgba(34,197,94,.15);
+      color: #22c55e;
+      font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .success-title { font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 700; color: #22c55e; }
+    .success-desc  { font-size: 12px; color: var(--muted); max-width: 260px; line-height: 1.6; }
+    .kaspi-reset {
+      padding: 10px 24px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 12px; font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .kaspi-reset:hover { background: var(--surface); color: var(--text); }
+
+    /* ─── SLIDE 6 – TECH STACK ─── */
+    #slide-6 { gap: 28px; }
+    #slide-6 h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 800; text-align: center; }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+    .tech-card {
+      padding: 24px 20px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: all .3s;
+    }
+    .tech-card:hover { border-color: rgba(59,130,246,.4); transform: translateY(-4px); }
+    .tech-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .tech-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .tech-desc  { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .deploy-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 24px;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+    }
+    .deploy-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+    .deploy-val   { font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+    /* ─── SLIDE 7 – CTA ─── */
+    #slide-7 { text-align: center; gap: 20px; }
+    #slide-7 h2 { font-size: clamp(36px, 5.5vw, 68px); font-weight: 900; line-height: 1.05; letter-spacing: -.03em; }
+    .cta-desc { font-size: 16px; color: var(--muted); max-width: 540px; line-height: 1.7; }
+    .cta-cards {
+      display: flex;
+      gap: 12px;
+      margin: 8px 0;
+    }
+    .cta-card {
+      flex: 1;
+      padding: 20px 16px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .cta-card-icon { font-size: 24px; margin-bottom: 8px; }
+    .cta-card-title { font-size: 13px; font-weight: 700; }
+    .cta-card-desc  { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+    .cta-btn {
+      padding: 16px 42px;
+      border-radius: 100px;
+      border: none;
+      background: var(--grad);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px; font-weight: 800;
+      cursor: pointer;
+      transition: all .3s;
+      box-shadow: 0 6px 28px rgba(59,130,246,.35);
+      letter-spacing: .01em;
+    }
+    .cta-btn:hover { transform: scale(1.04) translateY(-2px); box-shadow: 0 10px 36px rgba(59,130,246,.5); }
+    .cta-link { font-size: 12px; color: var(--muted); }
+    .cta-link a { color: var(--blue); text-decoration: none; font-weight: 700; }
+    .cta-link a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      header { padding: 12px 16px; }
+      footer { padding: 10px 16px; gap: 8px; }
+      #slides-wrapper { padding: 76px 16px 72px; }
+      #slide-2 .two-col,
+      #slide-3 .two-col,
+      #slide-5 .two-col { grid-template-columns: 1fr; gap: 20px; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .tech-grid { grid-template-columns: 1fr 1fr; }
+      .stats-row { padding: 14px 16px; }
+      .stat { padding: 0 14px; }
+      .stat-num { font-size: 20px; }
+      .cta-cards { flex-direction: column; }
+      #slide-1 h1 { font-size: 38px; }
+      #slide-7 h2 { font-size: 32px; }
+      .btn-nav span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">E</div>
+      <span class="logo-text">EduWave</span>
+    </div>
+    <div class="header-right">
+      <span class="slide-counter" id="counter">Слайд 1 / 7</span>
+      <button class="btn-icon" id="btn-fullscreen" title="Полный экран">⛶</button>
+    </div>
+  </header>
+
+  <!-- Slides -->
+  <div id="slides-wrapper">
+
+    <!-- SLIDE 1: HERO -->
+    <div class="slide active" id="slide-1">
+      <span class="badge badge-orange">✦ Образовательная платформа</span>
+      <h1>Edu<span class="grad-text">Wave</span></h1>
+      <p class="subtitle">Новое поколение онлайн-обучения для школьников и студентов Казахстана</p>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-num blue-text">8k+</div>
+          <div class="stat-label">Студентов</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat">
+          <div class="stat-num" style="color:var(--text)">12+</div>
+          <div class="stat-label">Направлений</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat">
+          <div class="stat-num orange-text">+92</div>
+          <div class="stat-label">Баллов на ЕГЭ</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat">
+          <div class="stat-num" style="color:#22c55e">4.9 ★</div>
+          <div class="stat-label">Рейтинг</div>
+        </div>
+      </div>
+      <div class="hint-keys">
+        <span>Навигация:</span>
+        <kbd>←</kbd><kbd>→</kbd><span>или</span><kbd>Пробел</kbd>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: PROBLEM -->
+    <div class="slide" id="slide-2">
+      <div class="two-col">
+        <div>
+          <span class="badge badge-red">⚠ Проблема</span>
+          <h2>Почему классические курсы <span style="color:#ef4444">не работают</span>?</h2>
+          <p class="problem-desc">Большинство платформ предлагают одно и то же: запишитесь, смотрите скучные видеолекции и скачивайте PDF. В итоге:</p>
+          <ul class="pain-list">
+            <li class="pain-item">
+              <div class="pain-icon">✕</div>
+              <div>
+                <div class="pain-title">Потеря мотивации</div>
+                <div class="pain-desc">Ученики скучают и бросают обучение уже на первой неделе.</div>
+              </div>
+            </li>
+            <li class="pain-item">
+              <div class="pain-icon">✕</div>
+              <div>
+                <div class="pain-title">Нет быстрой практики</div>
+                <div class="pain-desc">Теория не закрепляется сразу — никаких тренажёров и интерактива.</div>
+              </div>
+            </li>
+            <li class="pain-item">
+              <div class="pain-icon">✕</div>
+              <div>
+                <div class="pain-title">Скрытые цены и кредиты</div>
+                <div class="pain-desc">Требуют платить сотни тысяч вперёд без возможности попробовать.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="timeline">
+            <div style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;text-align:center;margin-bottom:16px;color:var(--muted)">Типичный путь ученика</div>
+            <div class="tl-item">
+              <div class="tl-num">1</div>
+              <div><div class="tl-title">Оплата огромного кредита</div><div class="tl-desc">Платят за год вперёд без уверенности в результате.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-num">2</div>
+              <div><div class="tl-title">Просмотр 2-часовых видео</div><div class="tl-desc">Много сухой теории без примеров — тяжело удержать фокус.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-num">3</div>
+              <div><div class="tl-title">Попытка выполнить д/з</div><div class="tl-desc">Ничего не работает, куратор отвечает через сутки.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-num bad">4</div>
+              <div><div class="tl-title" style="color:#ef4444;font-weight:800">Обучение заброшено (90%)</div><div class="tl-desc">Итог: долг по рассрочке и отсутствие новых навыков.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: SOLUTION -->
+    <div class="slide" id="slide-3">
+      <div class="two-col">
+        <div class="card">
+          <div class="sol-timeline">
+            <div style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;text-align:center;margin-bottom:16px;color:var(--muted)">Подход EduWave</div>
+            <div class="sol-item">
+              <div class="sol-num">1</div>
+              <div><div class="tl-title">Бесплатный пробный урок</div><div class="tl-desc">Доступ открыт мгновенно без привязки карт.</div></div>
+            </div>
+            <div class="sol-item">
+              <div class="sol-num">2</div>
+              <div><div class="tl-title">Интерактивный класс</div><div class="tl-desc">Теория + тренажёр прямо в браузере, без установок.</div></div>
+            </div>
+            <div class="sol-item">
+              <div class="sol-num">3</div>
+              <div><div class="tl-title">Контроль прогресса по шагам</div><div class="tl-desc">Тест после каждой лекции открывает следующий урок.</div></div>
+            </div>
+            <div class="sol-item">
+              <div class="sol-num win">4</div>
+              <div><div class="tl-title" style="color:var(--orange);font-weight:800">Успешное завершение курса 🏆</div><div class="tl-desc">Реальные навыки и золотая корона в личном кабинете.</div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <span class="badge badge-blue">✨ Наше решение</span>
+          <h2>Интерактивное обучение <span class="blue-text">EduWave</span></h2>
+          <p class="problem-desc">Мы перенесли фокус со скучного зазубривания лекций на увлекательный интерактивный процесс:</p>
+          <ul class="feature-list">
+            <li class="feat-item">
+              <div class="feat-icon">✓</div>
+              <div>
+                <div class="pain-title">Практика на лету</div>
+                <div class="pain-desc">Встроенный веб-тренажёр для HTML, CSS, JS и Git прямо в браузере.</div>
+              </div>
+            </li>
+            <li class="feat-item">
+              <div class="feat-icon">✓</div>
+              <div>
+                <div class="pain-title">Гибкая подписка</div>
+                <div class="pain-desc">Никаких кредитов — оплачивайте ежемесячно через Kaspi или карту.</div>
+              </div>
+            </li>
+            <li class="feat-item">
+              <div class="feat-icon">✓</div>
+              <div>
+                <div class="pain-title">Геймификация и прогресс-бары</div>
+                <div class="pain-desc">Визуальные шкалы завершения курсов мотивируют дойти до конца.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: FEATURES -->
+    <div class="slide" id="slide-4">
+      <span class="badge badge-purple">🚀 Ключевые возможности</span>
+      <h2>Всё, что нужно для <span class="grad-text">успешного</span> обучения</h2>
+      <div class="features-grid">
+        <div class="feat-card">
+          <span class="feat-card-icon">💻</span>
+          <div class="feat-card-title">Веб-тренажёр</div>
+          <div class="feat-card-desc">Пишите и запускайте код прямо в браузере — HTML, CSS, JavaScript, Git. Без установок!</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-card-icon">📊</span>
+          <div class="feat-card-title">Прогресс и аналитика</div>
+          <div class="feat-card-desc">Личный кабинет с прогресс-барами, рейтингом и золотой короной за 100% курса.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-card-icon">🎓</span>
+          <div class="feat-card-title">12+ направлений</div>
+          <div class="feat-card-desc">Математика, физика, химия, English, программирование, дизайн, маркетинг и др.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-card-icon">🔓</span>
+          <div class="feat-card-title">Бесплатный старт</div>
+          <div class="feat-card-desc">Первый IT-экспресс курс полностью бесплатный — попробуй без риска.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-card-icon">📱</span>
+          <div class="feat-card-title">Оплата через Kaspi</div>
+          <div class="feat-card-desc">Мгновенный push-счёт в приложение Kaspi.kz — удобно для рынка Казахстана.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-card-icon">⚡</span>
+          <div class="feat-card-title">Адаптивная платформа</div>
+          <div class="feat-card-desc">Сайт работает мгновенно на любом устройстве — React + Vite под капотом.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: KASPI PAYMENT -->
+    <div class="slide" id="slide-5">
+      <div class="two-col">
+        <div>
+          <span class="badge badge-orange">💳 Доступная оплата</span>
+          <h2>Интеграция с <span style="color:#ef4444;font-weight:900">Kaspi.kz</span> и банковскими картами</h2>
+          <p class="problem-desc">Мы заботимся о доступности образования. Оплата реализована максимально просто и безопасно для рынка Казахстана:</p>
+          <div class="pay-feature">
+            <div class="pay-check">✓</div>
+            <div><div class="pain-title">Мгновенный пуш-счёт</div><div class="pain-desc">Введите номер телефона и подтвердите оплату в Kaspi одним кликом.</div></div>
+          </div>
+          <div class="pay-feature">
+            <div class="pay-check">✓</div>
+            <div><div class="pain-title">Защищённое шифрование карт</div><div class="pain-desc">Полная поддержка международных стандартов безопасности платежей.</div></div>
+          </div>
+          <div class="pay-feature">
+            <div class="pay-check">✓</div>
+            <div><div class="pain-title">Никаких автосписаний</div><div class="pain-desc">Управляйте подпиской и отменяйте её в личном кабинете в любой момент.</div></div>
+          </div>
+        </div>
+
+        <!-- Kaspi Simulator -->
+        <div class="kaspi-sim">
+          <div class="kaspi-header">
+            <div class="kaspi-k">K</div>
+            <span class="kaspi-title">Оплата через Kaspi.kz</span>
+          </div>
+          <div id="kaspi-form">
+            <div class="kaspi-amount">
+              <span class="kaspi-amount-label">Тариф «Стандарт»</span>
+              <span class="kaspi-amount-val">14 990 ₸</span>
+            </div>
+            <label class="kaspi-input-label">Номер телефона в Kaspi.kz</label>
+            <input class="kaspi-input" id="kaspi-phone" type="tel" placeholder="+7 (707) 123-45-67" />
+            <button class="kaspi-btn" onclick="triggerKaspi()">Выставить счёт на оплату</button>
+          </div>
+          <div class="kaspi-loading" id="kaspi-loading">
+            <div class="spin"></div>
+            <div style="font-size:13px;font-weight:700">Отправка запроса в Kaspi...</div>
+            <div style="font-size:11px;color:var(--muted)">Формируем защищённую сессию оплаты...</div>
+          </div>
+          <div class="kaspi-success" id="kaspi-success">
+            <div class="success-icon">✓</div>
+            <div class="success-title">Счёт успешно выставлен!</div>
+            <div class="success-desc" id="kaspi-success-text">На ваш номер отправлено push-уведомление в приложение Kaspi.kz. Подтвердите оплату там.</div>
+            <button class="kaspi-reset" onclick="resetKaspi()">Попробовать снова</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: TECH STACK -->
+    <div class="slide" id="slide-6">
+      <span class="badge badge-blue">🛠 Под капотом</span>
+      <h2>Технологический <span class="grad-text">стек</span></h2>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <span class="tech-icon">⚛️</span>
+          <div class="tech-name">React + TypeScript</div>
+          <div class="tech-desc">Строгая типизация и быстрый рендеринг интерфейса</div>
+        </div>
+        <div class="tech-card">
+          <span class="tech-icon" style="font-size:28px;font-weight:900;color:#f59e0b;font-family:'Unbounded',sans-serif">T</span>
+          <div class="tech-name">TanStack Router</div>
+          <div class="tech-desc">Умная маршрутизация с предзагрузкой данных и валидацией</div>
+        </div>
+        <div class="tech-card">
+          <span class="tech-icon">⚡</span>
+          <div class="tech-name">Supabase Backend</div>
+          <div class="tech-desc">PostgreSQL, авторизация и хранение прогресса в облаке</div>
+        </div>
+        <div class="tech-card">
+          <span class="tech-icon">🎨</span>
+          <div class="tech-name">Tailwind CSS v4</div>
+          <div class="tech-desc">Премиум-дизайн с OKLCH цветами и плавной анимацией</div>
+        </div>
+      </div>
+      <div class="deploy-box">
+        <div class="deploy-label">Деплой и хостинг</div>
+        <div class="deploy-val">Облачный деплой на <strong style="color:var(--blue)">Vercel</strong> с автоматической сборкой, CDN и HTTPS-защитой</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: CTA -->
+    <div class="slide" id="slide-7">
+      <span class="badge badge-orange">🎉 Начните прямо сейчас</span>
+      <h2>Готовы войти в волну<br><span class="grad-text">EduWave</span>?</h2>
+      <p class="cta-desc">Попробуйте первый урок бесплатно, пройдите интерактивные тренажёры и убедитесь в эффективности нового подхода к обучению.</p>
+      <div class="cta-cards">
+        <div class="cta-card">
+          <div class="cta-card-icon">🚀</div>
+          <div class="cta-card-title">Бесплатный старт</div>
+          <div class="cta-card-desc">IT-экспресс курс без карты и регистрации</div>
+        </div>
+        <div class="cta-card">
+          <div class="cta-card-icon">⚡</div>
+          <div class="cta-card-title">Мгновенный доступ</div>
+          <div class="cta-card-desc">Открываем первый урок за 30 секунд</div>
+        </div>
+        <div class="cta-card">
+          <div class="cta-card-icon">🏆</div>
+          <div class="cta-card-title">Реальный результат</div>
+          <div class="cta-card-desc">+92 балла на ЕГЭ у наших учеников</div>
+        </div>
+      </div>
+      <button class="cta-btn" onclick="window.open('https://eduwave.vercel.app','_blank')">
+        Перейти на EduWave →
+      </button>
+      <div class="cta-link">или <a href="https://eduwave.vercel.app" target="_blank">eduwave.vercel.app</a></div>
+    </div>
+
+  </div><!-- /slides-wrapper -->
+
+  <!-- Footer nav -->
+  <footer>
+    <button class="btn-nav btn-prev" id="btn-prev" onclick="prevSlide()" disabled>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      <span>Назад</span>
+    </button>
+    <div class="dots" id="dots"></div>
+    <button class="btn-nav btn-next" id="btn-next" onclick="nextSlide()">
+      <span>Далее</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+  </footer>
+
+  <script>
+    const TOTAL = 7;
+    let current = 0;
+
+    const slides   = document.querySelectorAll('.slide');
+    const dotsEl   = document.getElementById('dots');
+    const counter  = document.getElementById('counter');
+    const btnPrev  = document.getElementById('btn-prev');
+    const btnNext  = document.getElementById('btn-next');
+    const progressBar = document.getElementById('progress-bar');
+
+    // Build dots
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.addEventListener('click', () => goTo(i));
+      dotsEl.appendChild(d);
+    }
+
+    function goTo(idx) {
+      slides[current].classList.remove('active');
+      current = idx;
+      slides[current].classList.add('active');
+      update();
+    }
+
+    function update() {
+      // Progress bar
+      progressBar.style.width = ((current + 1) / TOTAL * 100) + '%';
+      // Counter
+      counter.textContent = 'Слайд ' + (current + 1) + ' / ' + TOTAL;
+      // Dots
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+      // Buttons
+      btnPrev.disabled = current === 0;
+      btnNext.disabled = current === TOTAL - 1;
+    }
+
+    function nextSlide() { if (current < TOTAL - 1) goTo(current + 1); }
+    function prevSlide() { if (current > 0) goTo(current - 1); }
+
+    // Keyboard
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); prevSlide(); }
+    });
+
+    // Fullscreen
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        document.getElementById('btn-fullscreen').textContent = '⊡';
+      } else {
+        document.exitFullscreen();
+        document.getElementById('btn-fullscreen').textContent = '⛶';
+      }
+    });
+
+    // ── Kaspi Simulator ──
+    function triggerKaspi() {
+      const phone = document.getElementById('kaspi-phone').value.trim();
+      if (!phone) {
+        document.getElementById('kaspi-phone').style.borderColor = '#ef4444';
+        setTimeout(() => document.getElementById('kaspi-phone').style.borderColor = '', 1200);
+        return;
+      }
+      document.getElementById('kaspi-form').style.display = 'none';
+      const loading = document.getElementById('kaspi-loading');
+      loading.style.display = 'flex';
+      setTimeout(() => {
+        loading.style.display = 'none';
+        const success = document.getElementById('kaspi-success');
+        document.getElementById('kaspi-success-text').textContent =
+          'На номер ' + phone + ' отправлено push-уведомление в приложение Kaspi.kz. Подтвердите оплату там.';
+        success.style.display = 'flex';
+      }, 2200);
+    }
+
+    function resetKaspi() {
+      document.getElementById('kaspi-phone').value = '';
+      document.getElementById('kaspi-form').style.display = 'block';
+      document.getElementById('kaspi-loading').style.display = 'none';
+      document.getElementById('kaspi-success').style.display = 'none';
+    }
+
+    // Init
+    update();
+  </script>
+</body>
+</html>

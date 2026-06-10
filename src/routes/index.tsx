@@ -287,12 +287,7 @@ function Index() {
               >
                 Начать обучение →
               </Link>
-              <a
-                href="#advantages"
-                className="px-8 py-4 rounded-full bg-white text-gray-900 border-2 border-border font-bold text-base hover:bg-gray-50 hover:border-brand-blue dark:bg-card dark:text-foreground dark:hover:bg-muted dark:border-border/50 transition"
-              >
-                Узнать больше
-              </a>
+
             </div>
             <div className="mt-10 flex flex-wrap items-center gap-6 sm:gap-8 bg-white/40 dark:bg-card/40 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-white/60 dark:border-border/40 shadow-sm max-w-lg">
               <div className="flex-1 min-w-[120px]">
@@ -514,8 +509,78 @@ function Index() {
         </div>
       </section>
 
-      <footer className="border-t border-border py-10 text-center text-sm text-muted-foreground">
-        © 2026 EduWave. Учись с удовольствием.
+      {/* Support Footer */}
+      <footer className="border-t border-border bg-card/50">
+        {/* Support Section */}
+        <section className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs uppercase tracking-wider">
+              💬 Поддержка
+            </span>
+            <h2 className="mt-5 font-display font-bold text-3xl md:text-4xl">Свяжитесь с нами</h2>
+            <p className="mt-4 text-muted-foreground font-semibold leading-relaxed text-base">
+              Если вы обнаружили ошибку или какую-то неисправность — пожалуйста, сообщите нам.
+              Мы будем рады каждому вашему сообщению! 🙏
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+            {/* Phone 1 */}
+            <a
+              href="tel:87768485011"
+              className="group flex flex-col items-center gap-4 p-7 rounded-3xl border border-border bg-background hover:border-brand-blue hover:shadow-[var(--shadow-card)] hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 flex items-center justify-center text-2xl group-hover:bg-brand-blue group-hover:text-white transition-all duration-300">
+                📞
+              </div>
+              <div className="text-center">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Телефон 1</div>
+                <div className="font-display font-bold text-base text-foreground group-hover:text-brand-blue transition">
+                  8 776 848 50 11
+                </div>
+              </div>
+            </a>
+
+            {/* Phone 2 */}
+            <a
+              href="tel:87003879593"
+              className="group flex flex-col items-center gap-4 p-7 rounded-3xl border border-border bg-background hover:border-brand-blue hover:shadow-[var(--shadow-card)] hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 flex items-center justify-center text-2xl group-hover:bg-brand-blue group-hover:text-white transition-all duration-300">
+                📱
+              </div>
+              <div className="text-center">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Телефон 2</div>
+                <div className="font-display font-bold text-base text-foreground group-hover:text-brand-blue transition">
+                  8 700 387 95 93
+                </div>
+              </div>
+            </a>
+
+            {/* Instagram */}
+            <a
+              href="https://www.instagram.com/zholdasbeko_v"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center gap-4 p-7 rounded-3xl border border-border bg-background hover:border-brand-orange hover:shadow-[var(--shadow-card)] hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-2xl group-hover:bg-gradient-to-br group-hover:from-pink-500 group-hover:to-brand-orange group-hover:text-white transition-all duration-300">
+                📸
+              </div>
+              <div className="text-center">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Instagram</div>
+                <div className="font-display font-bold text-base text-foreground group-hover:text-brand-orange transition">
+                  @zholdasbeko_v
+                </div>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        {/* Copyright */}
+        <div className="border-t border-border py-6 text-center text-sm text-muted-foreground">
+          © 2026 EduWave. Учись с удовольствием.
+        </div>
       </footer>
     </div>
   );

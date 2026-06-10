@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as LearningRouteImport } from './routes/learning'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PresentationRoute = PresentationRouteImport.update({
+  id: '/presentation',
+  path: '/presentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearningRoute = LearningRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/courses': typeof CoursesRoute
   '/learning': typeof LearningRoute
+  '/presentation': typeof PresentationRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/courses': typeof CoursesRoute
   '/learning': typeof LearningRoute
+  '/presentation': typeof PresentationRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,28 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/courses': typeof CoursesRoute
   '/learning': typeof LearningRoute
+  '/presentation': typeof PresentationRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/courses' | '/learning' | '/profile'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/courses'
+    | '/learning'
+    | '/presentation'
+    | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/courses' | '/learning' | '/profile'
-  id: '__root__' | '/' | '/auth' | '/courses' | '/learning' | '/profile'
+  to: '/' | '/auth' | '/courses' | '/learning' | '/presentation' | '/profile'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/courses'
+    | '/learning'
+    | '/presentation'
+    | '/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +98,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CoursesRoute: typeof CoursesRoute
   LearningRoute: typeof LearningRoute
+  PresentationRoute: typeof PresentationRoute
   ProfileRoute: typeof ProfileRoute
 }
 
@@ -86,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/presentation': {
+      id: '/presentation'
+      path: '/presentation'
+      fullPath: '/presentation'
+      preLoaderRoute: typeof PresentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learning': {
@@ -124,6 +154,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CoursesRoute: CoursesRoute,
   LearningRoute: LearningRoute,
+  PresentationRoute: PresentationRoute,
   ProfileRoute: ProfileRoute,
 }
 export const routeTree = rootRouteImport
